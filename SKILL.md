@@ -4,66 +4,26 @@
 ## 使用方式
 当用户需要生成某个学科知识点的卡通学习网页时，使用以下格式调用：
 **调用格式：**
-生成 [学科] [年级] [知识点] 的卡通学习网页，风格选[风格]，难度[简单/中等/较难]
+@卡通学习网页生成器 生成 [学科] [年级] [知识点] 的卡通学习网页，风格选[风格]，难度[简单/中等/较难]
 **参数说明：**
 | 参数 | 说明 | 可选值 |
 |------|------|--------|
 | 学科 | 小学学科 | 语文、数学、英语、科学、美术、音乐 |
 | 年级 | 年级 | 一年级~六年级 |
-| 知识点 | 具体知识点 | 根据学科不同（见下方支持列表） |
+| 知识点 | 具体知识点 | 根据学科不同 |
 | 风格 | 页面风格（可选，默认卡通冒险） | 卡通冒险、梦幻童话、太空探索、动物乐园、海洋世界、森林奇遇 |
 | 难度 | 难度级别（可选，默认中等） | 简单、中等、较难 |
 **调用示例：**
-生成 数学 三年级 乘法口诀 的卡通学习网页
-生成 语文 一年级 拼音拼读 的卡通学习网页，风格选动物乐园，难度简单
-生成 英语 四年级 过去式 的卡通学习网页，风格选太空探索
-## 支持学科与知识点
-### 📚 语文
-- **拼音**：声母、韵母、整体认读音节、声调、拼读规则
-- **汉字**：笔画、偏旁部首、字形结构、多音字、形近字
-- **词语**：近义词、反义词、成语、量词、叠词
-- **句子**：扩句缩句、修辞手法、病句修改、标点符号
-- **古诗**：唐诗、宋词、古诗背诵、诗意理解
-- **阅读理解**：记叙文、说明文、童话、寓言
-- **作文**：看图写话、记叙文、日记格式
-### 🔢 数学
-- **数与代数**：认识数字、加减法、乘法口诀、分数、小数、百分数
-- **图形与几何**：认识图形、周长面积、立体图形、角度
-- **统计与概率**：数据收集、统计图、可能性
-- **综合实践**：时间认识、货币计算、测量
-### 🔤 英语
-- **字母**：26个字母、大小写、字母发音
-- **单词**：颜色、动物、食物、身体部位、家庭
-- **句型**：问候语、自我介绍、日常对话
-- **语法**：时态、名词复数、形容词比较级
-- **对话**：购物、问路、打电话
-### 🔬 科学
-- **生命科学**：植物生长、动物分类、人体奥秘
-- **物质科学**：水的变化、磁力、声音、光
-- **地球与宇宙**：天气、四季、太阳系
-- **技术与工程**：简单机械、工具使用
-### 🎨 美术
-- **色彩**：三原色、冷暖色、色彩搭配
-- **线条**：直线曲线、粗线细线、线条组合
-- **形状**：基本图形、组合图形、对称图形
-- **构图**：中心构图、三分法、远近关系
-- **手工**：剪纸、折纸、泥塑
-### 🎵 音乐
-- **音符**：全音符、二分音符、四分音符、八分音符
-- **节奏**：节拍、强弱规律、节奏型
-- **旋律**：音阶、音程、旋律走向
-- **乐器**：民族乐器、西洋乐器、打击乐器
-- **歌曲**：儿歌、民歌、合唱
+@卡通学习网页生成器 生成 语文 一年级 拼音 的卡通学习网页
+@卡通学习网页生成器 生成 数学 三年级 乘法口诀 的卡通学习网页
 ## 执行流程
 1. 解析用户输入，提取学科、年级、知识点、风格、难度
-2. 运行下方核心代码，调用 generate_learning_html() 函数生成HTML
-3. 将HTML保存到 output/ 目录
-4. 自动打开浏览器展示学习网页
+2. 调用 run() 函数生成HTML
+3. 返回完整的HTML网页字符串
 ## 核心代码
 ```python
 import os
 import json
-import webbrowser
 from datetime import datetime
 def generate_learning_html(subject, grade, topic, style="卡通冒险", difficulty="中等"):
     """
@@ -79,82 +39,12 @@ def generate_learning_html(subject, grade, topic, style="卡通冒险", difficul
     Returns:
         str: 生成的HTML文件路径
     """
-    # 风格配置（内置）
-    STYLE_CONFIG = {
-    "卡通冒险": {
-        "primary": "#FF6B35",
-        "secondary": "#F7C59F",
-        "bg": "#FFF3E0",
-        "accent": "#FFD700",
-        "text": "#4A2800",
-        "card_bg": "#FFFFFF",
-        "shadow": "rgba(255,107,53,0.2)",
-        "gradient": "linear-gradient(135deg, #FF6B35 0%, #FFD700 100%)",
-        "font_family": "'Comic Neue', 'ZCOOL KuaiLe', cursive",
-        "description": "活力橙黄配色，适合冒险主题"
-    },
-    "梦幻童话": {
-        "primary": "#9B59B6",
-        "secondary": "#E8DAEF",
-        "bg": "#F5E6FF",
-        "accent": "#FF69B4",
-        "text": "#4A235A",
-        "card_bg": "#FFFFFF",
-        "shadow": "rgba(155,89,182,0.2)",
-        "gradient": "linear-gradient(135deg, #9B59B6 0%, #FF69B4 100%)",
-        "font_family": "'Ma Shan Zheng', 'ZCOOL KuaiLe', cursive",
-        "description": "梦幻紫粉配色，适合童话主题"
-    },
-    "太空探索": {
-        "primary": "#2E86C1",
-        "secondary": "#AED6F1",
-        "bg": "#E8F4FD",
-        "accent": "#00FF88",
-        "text": "#1B2631",
-        "card_bg": "#FFFFFF",
-        "shadow": "rgba(46,134,193,0.2)",
-        "gradient": "linear-gradient(135deg, #2E86C1 0%, #00FF88 100%)",
-        "font_family": "'Orbitron', 'ZCOOL KuaiLe', sans-serif",
-        "description": "科技蓝绿配色，适合太空主题"
-    },
-    "动物乐园": {
-        "primary": "#27AE60",
-        "secondary": "#A9DFBF",
-        "bg": "#E8F8F0",
-        "accent": "#F39C12",
-        "text": "#1E3A2E",
-        "card_bg": "#FFFFFF",
-        "shadow": "rgba(39,174,96,0.2)",
-        "gradient": "linear-gradient(135deg, #27AE60 0%, #F39C12 100%)",
-        "font_family": "'Fredoka One', 'ZCOOL KuaiLe', cursive",
-        "description": "自然绿橙配色，适合动物主题"
-    },
-    "海洋世界": {
-        "primary": "#1ABC9C",
-        "secondary": "#D5F5E3",
-        "bg": "#E8F6F3",
-        "accent": "#3498DB",
-        "text": "#0E4D3A",
-        "card_bg": "#FFFFFF",
-        "shadow": "rgba(26,188,156,0.2)",
-        "gradient": "linear-gradient(135deg, #1ABC9C 0%, #3498DB 100%)",
-        "font_family": "'Pacifico', 'ZCOOL KuaiLe', cursive",
-        "description": "清新蓝绿配色，适合海洋主题"
-    },
-    "森林奇遇": {
-        "primary": "#8BC34A",
-        "secondary": "#C8E6C9",
-        "bg": "#F1F8E9",
-        "accent": "#FF9800",
-        "text": "#33691E",
-        "card_bg": "#FFFFFF",
-        "shadow": "rgba(139,195,74,0.2)",
-        "gradient": "linear-gradient(135deg, #8BC34A 0%, #FF9800 100%)",
-        "font_family": "'Patrick Hand', 'ZCOOL KuaiLe', cursive",
-        "description": "森林绿橙配色，适合自然主题"
-    }
-}
-    style_info = STYLE_CONFIG.get(style, STYLE_CONFIG["卡通冒险"])
+    # 加载风格配置
+    style_config_path = os.path.join(os.path.dirname(__file__), "templates", "style_config.json")
+    with open(style_config_path, "r", encoding="utf-8") as f:
+        styles = json.load(f)
+    
+    style_info = styles.get(style, styles["卡通冒险"])
     
     # 生成知识点内容
     content = generate_content(subject, grade, topic, difficulty)
@@ -170,10 +60,7 @@ def generate_learning_html(subject, grade, topic, style="卡通冒险", difficul
     filename = f"{subject}_{grade}_{topic}_{timestamp}.html"
     filepath = os.path.join(output_dir, filename)
     
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(html)
-    
-    return filepath
+    return html
 def generate_content(subject, grade, topic, difficulty):
     """根据学科、年级、知识点生成学习内容"""
     # 知识点内容模板库
@@ -973,4 +860,9 @@ def build_html(subject, grade, topic, style_info, content, difficulty):
 </html>"""
     
     return html
+# 平台入口函数
+def run(subject, grade, topic, style="卡通冒险", difficulty="中等"):
+    """桂教通平台调用入口"""
+    return generate_learning_html(subject, grade, topic, style, difficulty)
+
 ```
