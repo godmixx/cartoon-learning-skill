@@ -1,389 +1,165 @@
-# 🔊 小闯闯语音课堂生成器
+# 🔊 小闯闯语音课堂生成器（纯语音版）
 ## 简介
-根据用户需求，生成小学各学科知识点的卡通风格语音学习页面，支持6种卡通风格、6个学科，包含知识点语音朗读、趣味互动练习等功能。
+根据用户需求，直接生成小学各学科知识点的语音讲解音频文件（MP3），无需网页，无需浏览器，一键生成可播放的语音文件。
 ## 使用方式
-当用户需要生成某个学科知识点的语音学习页面时，使用以下格式调用：
+当用户需要生成某个学科知识点的语音讲解时，使用以下格式调用：
 **调用格式：**
-@小闯闯语音课堂生成器 生成 [学科] [年级] [知识点] 的语音学习页面，风格选[风格]，难度[简单/中等/较难]
+@小闯闯语音课堂生成器 生成 [学科] [年级] [知识点] 的语音讲解，风格选[风格]，难度[简单/中等/较难]
 **参数说明：**
 | 参数 | 说明 | 可选值 |
 |------|------|--------|
 | 学科 | 小学学科 | 语文、数学、英语、科学、美术、音乐 |
 | 年级 | 年级 | 一年级~六年级 |
-| 知识点 | 具体知识点 | 根据学科不同 |
-| 风格 | 页面风格（可选，默认卡通冒险） | 卡通冒险、梦幻童话、太空探索、动物乐园、海洋世界、森林奇遇 |
+| 知识点 | 具体知识点 | 拼音、古诗-静夜思、成语-画蛇添足、乘法口诀、加减法、字母、植物、颜色、音符等 |
+| 风格 | 语音风格（可选，默认卡通冒险） | 卡通冒险、梦幻童话、太空探索、动物乐园、海洋世界、森林奇遇 |
 | 难度 | 难度级别（可选，默认中等） | 简单、中等、较难 |
 **调用示例：**
-@小闯闯语音课堂生成器 生成 语文 一年级 拼音 的语音学习页面
-@小闯闯语音课堂生成器 生成 数学 三年级 乘法口诀 的语音学习页面
+@小闯闯语音课堂生成器 生成 语文 一年级 拼音 的语音讲解
+@小闯闯语音课堂生成器 生成 数学 三年级 乘法口诀 的语音讲解，风格选太空探索，难度较难
 ## 执行流程
 1. 解析用户输入，提取学科、年级、知识点、风格、难度
-2. 调用 run() 函数生成HTML
-3. 返回完整的HTML字符串
+2. 调用 run() 函数生成语音讲解文本
+3. 使用 Edge TTS 生成 MP3 音频文件
+4. 返回音频文件路径和相关信息
 ## 核心代码
 ```python
 import os
+import asyncio
+import edge_tts
 import json
-def generate_voice_html(subject, grade, topic, style="卡通冒险", difficulty="中等", content_data=None):
-    """生成带语音播放功能的小学知识点学习页面"""
-    styles = {
-  "卡通冒险": {
-    "primary": "#FF6B35",
-    "secondary": "#F7C59F",
-    "bg": "#FFF3E0",
-    "accent": "#FFD700",
-    "text": "#4A2800",
-    "card_bg": "#FFFFFF",
-    "shadow": "rgba(255,107,53,0.2)",
-    "gradient": "linear-gradient(135deg, #FF6B35 0%, #FFD700 100%)",
-    "font_family": "'Comic Neue', 'ZCOOL KuaiLe', cursive",
-    "description": "活力橙黄配色，适合冒险主题"
-  },
-  "梦幻童话": {
-    "primary": "#9B59B6",
-    "secondary": "#E8DAEF",
-    "bg": "#F5E6FF",
-    "accent": "#FF69B4",
-    "text": "#4A235A",
-    "card_bg": "#FFFFFF",
-    "shadow": "rgba(155,89,182,0.2)",
-    "gradient": "linear-gradient(135deg, #9B59B6 0%, #FF69B4 100%)",
-    "font_family": "'Ma Shan Zheng', 'ZCOOL KuaiLe', cursive",
-    "description": "梦幻紫粉配色，适合童话主题"
-  },
-  "太空探索": {
-    "primary": "#2E86C1",
-    "secondary": "#AED6F1",
-    "bg": "#E8F4FD",
-    "accent": "#00FF88",
-    "text": "#1B2631",
-    "card_bg": "#FFFFFF",
-    "shadow": "rgba(46,134,193,0.2)",
-    "gradient": "linear-gradient(135deg, #2E86C1 0%, #00FF88 100%)",
-    "font_family": "'Orbitron', 'ZCOOL KuaiLe', sans-serif",
-    "description": "科技蓝绿配色，适合太空主题"
-  },
-  "动物乐园": {
-    "primary": "#27AE60",
-    "secondary": "#A9DFBF",
-    "bg": "#E8F8F0",
-    "accent": "#F39C12",
-    "text": "#1E3A2E",
-    "card_bg": "#FFFFFF",
-    "shadow": "rgba(39,174,96,0.2)",
-    "gradient": "linear-gradient(135deg, #27AE60 0%, #F39C12 100%)",
-    "font_family": "'Fredoka One', 'ZCOOL KuaiLe', cursive",
-    "description": "自然绿橙配色，适合动物主题"
-  },
-  "海洋世界": {
-    "primary": "#1ABC9C",
-    "secondary": "#D5F5E3",
-    "bg": "#E8F6F3",
-    "accent": "#3498DB",
-    "text": "#0E4D3A",
-    "card_bg": "#FFFFFF",
-    "shadow": "rgba(26,188,156,0.2)",
-    "gradient": "linear-gradient(135deg, #1ABC9C 0%, #3498DB 100%)",
-    "font_family": "'Pacifico', 'ZCOOL KuaiLe', cursive",
-    "description": "清新蓝绿配色，适合海洋主题"
-  },
-  "森林奇遇": {
-    "primary": "#8BC34A",
-    "secondary": "#C8E6C9",
-    "bg": "#F1F8E9",
-    "accent": "#FF9800",
-    "text": "#33691E",
-    "card_bg": "#FFFFFF",
-    "shadow": "rgba(139,195,74,0.2)",
-    "gradient": "linear-gradient(135deg, #8BC34A 0%, #FF9800 100%)",
-    "font_family": "'Patrick Hand', 'ZCOOL KuaiLe', cursive",
-    "description": "森林绿橙配色，适合自然主题"
-  }
+from datetime import datetime
+# 知识点内容模板
+KNOWLEDGE_TEMPLATES = {
+    "语文": {
+        "拼音": {
+            "简单": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习一年级的拼音知识。拼音是学习汉字的基础，有23个声母、24个韵母和16个整体认读音节。声母有b、p、m、f、d、t、n、l、g、k、h、j、q、x、zh、ch、sh、r、z、c、s、y、w。韵母有a、o、e、i、u、u、ai、ei、ui、ao、ou、iu、ie、ue、er、an、en、in、un、un、ang、eng、ing、ong。整体认读音节有zhi、chi、shi、ri、zi、ci、si、yi、wu、yu、ye、yue、yuan、yin、yun、ying。多练习，你一定能学好拼音！",
+            "中等": "同学们好，欢迎来到小闯闯语音课堂。今天我们深入学习拼音知识。拼音由声母和韵母组成，声母是音节开头的辅音，韵母是音节中声母后面的部分。要注意平舌音和翘舌音的区别，平舌音有z、c、s，翘舌音有zh、ch、sh、r。还要注意前鼻音和后鼻音的区别，前鼻音有an、en、in、un、un，后鼻音有ang、eng、ing、ong。多读多练，掌握拼音并不难！",
+            "较难": "同学们好，欢迎来到小闯闯语音课堂。今天我们来挑战拼音的综合运用。拼音拼读时要注意声调，一声平、二声扬、三声拐弯、四声降。还要注意u上两点的省略规则，j、q、x遇到u，去掉两点还读u。y和w的使用规则也要牢记。整体认读音节要直接读出，不能拼读。现在我们来练习几个词语的拼音拼读。"
+        },
+        "古诗-静夜思": {
+            "简单": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习李白的古诗《静夜思》。床前明月光，疑是地上霜。举头望明月，低头思故乡。这首诗表达了诗人在安静的夜晚思念家乡的感情。",
+            "中等": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习唐代大诗人李白的《静夜思》。床前明月光，疑是地上霜。举头望明月，低头思故乡。这首诗用简洁的语言，描绘了游子在寂静的夜晚思念家乡的情景。床前的月光像地上的霜一样白，抬头看着明亮的月亮，不由得低下头思念起远方的故乡。",
+            "较难": "同学们好，欢迎来到小闯闯语音课堂。今天我们深入赏析李白的《静夜思》。床前明月光，疑是地上霜。举头望明月，低头思故乡。这首诗创作于李白旅居外地期间，通过月光这个意象，巧妙地表达了游子的思乡之情。诗中明、疑、举、低四个动词的运用，生动地刻画了诗人的动作和心理活动。"
+        },
+        "成语-画蛇添足": {
+            "简单": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习成语故事《画蛇添足》。古时候，几个人比赛画蛇，谁先画完谁喝酒。有个人先画完了，但他觉得蛇没有脚，就给蛇添上了脚。结果别人画完了蛇，把酒喝掉了。这个故事告诉我们，做事不要多此一举。",
+            "中等": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习成语《画蛇添足》的故事。这个成语出自《战国策》。古时候有几个人比赛画蛇，约定先画完的人可以喝酒。有个人最先画完，但他觉得蛇没有脚不够完美，于是给蛇添上了脚。这时另一个人也画完了，把酒夺走了。画蛇添足比喻做了多余的事，反而把事情弄糟。",
+            "较难": "同学们好，欢迎来到小闯闯语音课堂。今天我们深入学习成语《画蛇添足》的寓意。这个成语出自《战国策·齐策》，原意是画蛇时给蛇添上脚，比喻做了多余的事，非但无益，反而不合适。在生活中，我们做事要恰到好处，不要画蛇添足。比如回答问题要简洁明了，不要添加无关的内容。"
+        }
+    },
+    "数学": {
+        "乘法口诀": {
+            "简单": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习乘法口诀。一一得一，一二得二，一三得三，一四得四，一五得五，一六得六，一七得七，一八得八，一九得九。二二得四，二三得六，二四得八，二五一十。记住这些口诀，乘法计算就简单了！",
+            "中等": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习乘法口诀表。乘法口诀从一一得一到九九八十一，一共四十五句。我们来背一下：一一得一，一二得二，一三得三...九九八十一。乘法口诀可以帮助我们快速计算乘法，是数学学习的重要基础。",
+            "较难": "同学们好，欢迎来到小闯闯语音课堂。今天我们深入学习和运用乘法口诀。乘法口诀不仅可以帮助计算乘法，还可以帮助我们理解乘法的交换律。比如三七二十一，也可以用来计算七乘三。在实际应用中，我们要灵活运用乘法口诀解决生活中的问题。"
+        },
+        "加减法": {
+            "简单": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习加减法。加法就是把两个数合在一起，比如一加一等于二。减法就是从一个大数里去掉一个小数，比如三减一等于二。加减法是数学的基础，要多多练习哦！",
+            "中等": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习两位数的加减法。两位数加法要注意个位和个位相加，十位和十位相加，满十要进位。两位数减法要注意个位不够减时要向十位借一。多练习就能掌握！",
+            "较难": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习加减法的混合运算。在混合运算中，要按照从左到右的顺序计算。如果有括号，要先算括号里面的。加减法在生活中应用很广泛，比如买东西算钱、计算时间等。"
+        }
+    },
+    "英语": {
+        "字母": {
+            "简单": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习英文字母歌。A B C D E F G, H I J K L M N, O P Q R S T, U V W X Y Z。英文字母有26个，分为大写和小写。多唱几遍字母歌，就能记住啦！",
+            "中等": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习英文字母的分类。26个英文字母中，有5个元音字母：A、E、I、O、U，其余21个是辅音字母。元音字母在单词中的发音很重要，每个元音字母都有长音和短音两种发音。",
+            "较难": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习英文字母的发音规则。元音字母A在开音节中发本音，在闭音节中发短音。字母组合如sh、ch、th等有固定的发音。掌握这些规则，对学习英语单词的拼读很有帮助。"
+        }
+    },
+    "科学": {
+        "植物": {
+            "简单": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习植物的基本知识。植物有根、茎、叶、花、果实和种子。根可以吸收水分和养分，茎可以输送养分，叶子可以进行光合作用。植物是我们的好朋友，要爱护植物哦！",
+            "中等": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习植物的生长过程。种子种到土里，吸收水分后会发芽，长出根和茎，然后长出叶子和花朵，最后结出果实和种子。植物生长需要阳光、水分、空气和适宜的温度。",
+            "较难": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习植物的光合作用。光合作用是植物利用阳光、水和二氧化碳制造养分的过程。光合作用在叶子的叶绿体中进行，产生氧气和葡萄糖。光合作用对地球上的生命非常重要。"
+        }
+    },
+    "美术": {
+        "颜色": {
+            "简单": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习基本的颜色。红色、橙色、黄色、绿色、蓝色、紫色、黑色、白色。红色像苹果，黄色像太阳，蓝色像天空。颜色让世界变得丰富多彩！",
+            "中等": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习三原色和间色。三原色是红、黄、蓝，它们不能由其他颜色混合得到。间色是由两种原色混合得到的，比如红加黄得到橙色，黄加蓝得到绿色，蓝加红得到紫色。",
+            "较难": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习色彩的搭配和运用。互补色是色环上相对的颜色，如红和绿、蓝和橙、黄和紫。同类色是色环上相邻的颜色。暖色给人温暖的感觉，冷色给人凉爽的感觉。"
+        }
+    },
+    "音乐": {
+        "音符": {
+            "简单": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习基本的音符。音符有全音符、二分音符、四分音符、八分音符。全音符唱四拍，二分音符唱两拍，四分音符唱一拍，八分音符唱半拍。哆来咪发嗦拉西，七个音符真有趣！",
+            "中等": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习五线谱的基本知识。五线谱由五条线和四个间组成。高音谱号也叫G谱号，表示第二线的音是G。低音谱号也叫F谱号，表示第四线的音是F。认识五线谱是学习音乐的基础。",
+            "较难": "同学们好，欢迎来到小闯闯语音课堂。今天我们学习音阶和调式。C大调音阶是哆来咪发嗦拉西哆，全全半全全全半。每个大调都有对应的关系小调。音阶是音乐的基础，掌握音阶对学习乐器很有帮助。"
+        }
+    }
 }
-    style_info = styles.get(style, styles["卡通冒险"])
-    primary = style_info["primary"]
-    secondary = style_info["secondary"]
-    bg = style_info["bg"]
-    accent = style_info["accent"]
-    text_color = style_info["text"]
-    card_bg = style_info["card_bg"]
-    shadow = style_info["shadow"]
-    gradient = style_info["gradient"]
-    font_family = style_info["font_family"]
+# 语音风格配置
+VOICE_STYLES = {
+    "卡通冒险": {"voice": "zh-CN-XiaoxiaoNeural", "rate": "+10%", "pitch": "+10Hz", "desc": "活泼可爱"},
+    "梦幻童话": {"voice": "zh-CN-XiaoyiNeural", "rate": "+5%", "pitch": "+15Hz", "desc": "温柔甜美"},
+    "太空探索": {"voice": "zh-CN-YunyangNeural", "rate": "+0%", "pitch": "-5Hz", "desc": "沉稳大气"},
+    "动物乐园": {"voice": "zh-CN-XiaoxiaoNeural", "rate": "+15%", "pitch": "+20Hz", "desc": "俏皮欢快"},
+    "海洋世界": {"voice": "zh-CN-XiaoyiNeural", "rate": "+5%", "pitch": "+5Hz", "desc": "柔和舒缓"},
+    "森林奇遇": {"voice": "zh-CN-YunxiNeural", "rate": "+5%", "pitch": "+10Hz", "desc": "阳光开朗"}
+}
+def build_lesson_text(subject, grade, topic, difficulty="中等"):
+    """构建知识点讲解文本"""
+    subject_data = KNOWLEDGE_TEMPLATES.get(subject, {})
+    topic_data = subject_data.get(topic, subject_data.get(list(subject_data.keys())[0], {}))
+    text = topic_data.get(difficulty, topic_data.get("中等", f"欢迎来到{subject}的{topic}学习课堂。"))
     
-    if not content_data:
-        content_data = {
-            "title": subject + " · " + topic,
-            "intro": "欢迎来到" + subject + "的" + topic + "学习课堂！",
-            "sections": [
-                {"icon": "\U0001f4da", "title": topic + "基础", "content": "这是" + grade + subject + "的" + topic + "知识点。"},
-                {"icon": "\U0001f4a1", "title": "学习要点", "content": "掌握" + topic + "的核心概念和基本应用。"},
-                {"icon": "\U0001f3af", "title": "重点提示", "content": "多练习、多思考，你一定能学好！"}
-            ],
-            "tips": "每天坚持学习，进步看得见！",
-            "questions": [
-                {"q": "你对" + topic + "了解多少？", "a": "继续学习", "options": ["继续学习", "已经掌握", "需要帮助", "不确定"]}
-            ]
-        }
+    # 添加开头和结尾
+    full_text = f"同学们好，这是{grade}的{subject}知识点：{topic}。{text}今天的课程就到这里，我们下次再见！"
+    return full_text
+def generate_audio(subject, grade, topic, style="卡通冒险", difficulty="中等", output_dir=None):
+    """生成知识点语音音频文件"""
+    # 构建讲解文本
+    text = build_lesson_text(subject, grade, topic, difficulty)
     
-    title = content_data.get("title", subject + " · " + topic)
-    intro = content_data.get("intro", "")
-    sections = content_data.get("sections", content_data.get("knowledge_points", []))
-    tips = content_data.get("tips", "")
-    questions = content_data.get("questions", content_data.get("practice", []))
+    # 获取语音风格配置
+    style_config = VOICE_STYLES.get(style, VOICE_STYLES["卡通冒险"])
     
-    # 构建语音朗读文本
-    voice_text = title + "。" + intro + "。"
-    for sec in sections:
-        voice_text += sec.get("title", "") + "：" + sec.get("content", "") + "。"
-    if tips:
-        voice_text += "学习小提示：" + tips
+    # 确定输出路径
+    if output_dir is None:
+        output_dir = os.path.join(os.getcwd(), "output")
+    os.makedirs(output_dir, exist_ok=True)
     
-    # 构建知识点HTML
-    sections_html = ""
-    for sec in sections:
-        icon = sec.get("icon", "\U0001f4d6")
-        sec_title = sec.get("title", "")
-        sec_content = sec.get("content", "")
-        sections_html += """
-        <div class="section-card" style="background:""" + card_bg + """;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 4px 15px """ + shadow + """;border-left:5px solid """ + primary + """;">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-                <span style="font-size:32px;">""" + icon + """</span>
-                <h3 style="margin:0;font-size:20px;color:""" + text_color + """;">""" + sec_title + """</h3>
-            </div>
-            <p style="margin:0;font-size:16px;line-height:1.8;color:""" + text_color + """;opacity:0.9;">""" + sec_content + """</p>
-        </div>"""
+    # 生成文件名
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_topic = topic.replace("-", "_").replace(" ", "_")
+    filename = f"{subject}_{grade}_{safe_topic}_{style}_{timestamp}.mp3"
+    output_path = os.path.join(output_dir, filename)
     
-    # 构建练习题HTML
-    questions_html = ""
-    for i, q in enumerate(questions):
-        q_text = q.get("question", q.get("q", ""))
-        q_answer = q.get("answer", q.get("a", ""))
-        q_options = q.get("options", [])
-        options_html = ""
-        for j, opt in enumerate(q_options):
-            letter = chr(65 + j)
-            options_html += """
-            <div class="option" data-answer=\"""" + q_answer + """\" data-value=\"""" + opt + """\" onclick="checkAnswer(this)" style="background:""" + secondary + """;border-radius:12px;padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:all 0.3s;font-size:15px;color:""" + text_color + """;">
-                <span style="display:inline-block;width:28px;height:28px;border-radius:50%;background:""" + primary + """;color:white;text-align:center;line-height:28px;margin-right:10px;font-weight:bold;">""" + letter + """</span>
-                """ + opt + """
-            </div>"""
-        questions_html += """
-        <div class="question-card" style="background:""" + card_bg + """;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 4px 15px """ + shadow + """;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                <span style="font-size:20px;">\u270f\ufe0f</span>
-                <span style="font-size:14px;color:""" + primary + """;font-weight:bold;">第""" + str(i+1) + """题</span>
-            </div>
-            <p style="margin:0 0 12px 0;font-size:16px;line-height:1.6;color:""" + text_color + """;">""" + q_text + """</p>
-            <div class="options" style="margin-top:8px;">
-                """ + options_html + """
-            </div>
-            <div class="feedback" style="margin-top:12px;padding:10px 14px;border-radius:10px;display:none;font-size:14px;"></div>
-        </div>"""
+    # 生成语音
+    communicate = edge_tts.Communicate(
+        text,
+        voice=style_config["voice"],
+        rate=style_config["rate"],
+        pitch=style_config["pitch"]
+    )
+    asyncio.run(communicate.save(output_path))
     
-    # 构建提示卡片
-    tips_html = ""
-    if tips:
-        tips_html = """
-        <div class="tips-card" style="background:linear-gradient(135deg, """ + accent + """22, """ + secondary + """44);border-radius:16px;padding:20px;margin-bottom:24px;border:2px dashed """ + accent + """;">
-            <div style="font-size:18px;margin-bottom:8px;">\U0001f4a1 学习小提示</div>
-            <p style="font-size:15px;line-height:1.6;color:""" + text_color + """;">""" + tips + """</p>
-        </div>"""
+    file_size = os.path.getsize(output_path)
     
-    # 构建完整HTML
-    html = """<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>""" + title + """ - 小闯闯语音课堂</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            font-family: 'ZCOOL KuaiLe', 'Comic Sans MS', cursive, sans-serif;
-            background: """ + bg + """;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container { max-width: 800px; margin: 0 auto; }
-        .header {
-            background: """ + gradient + """;
-            border-radius: 24px;
-            padding: 30px;
-            text-align: center;
-            margin-bottom: 24px;
-            box-shadow: 0 8px 30px """ + shadow + """;
-        }
-        .header h1 { color: white; font-size: 28px; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
-        .header p { color: rgba(255,255,255,0.9); font-size: 16px; }
-        .voice-bar {
-            background: """ + card_bg + """;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 24px;
-            text-align: center;
-            box-shadow: 0 4px 15px """ + shadow + """;
-        }
-        .voice-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: """ + gradient + """;
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 50px;
-            font-size: 18px;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px """ + shadow + """;
-        }
-        .voice-btn:hover { transform: scale(1.05); }
-        .voice-btn:active { transform: scale(0.95); }
-        .voice-btn.playing { animation: pulse 1.5s infinite; }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 """ + primary + """66; }
-            70% { box-shadow: 0 0 0 15px """ + primary + """00; }
-            100% { box-shadow: 0 0 0 0 """ + primary + """00; }
-        }
-        .tips-card { }
-        .section-title {
-            font-size: 22px;
-            color: """ + text_color + """;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .option:hover { transform: translateX(5px); }
-        .option.correct { background: #27AE60 !important; color: white !important; }
-        .option.wrong { background: #E74C3C !important; color: white !important; }
-        .feedback.correct { background: #D5F5E3; color: #1E8449; display:block !important; }
-        .feedback.wrong { background: #FADBD8; color: #922B21; display:block !important; }
-        @media (max-width: 600px) {
-            .header h1 { font-size: 22px; }
-            .voice-btn { padding: 12px 24px; font-size: 16px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>\U0001f50a """ + title + """</h1>
-            <p>""" + intro + """</p>
-        </div>
-        
-        <div class="voice-bar">
-            <button class="voice-btn" onclick="playVoice()" id="voiceBtn">
-                <span id="voiceIcon">\U0001f50a</span>
-                <span id="voiceText">点击听小闯闯讲解</span>
-            </button>
-            <div style="margin-top:12px;font-size:13px;color:""" + text_color + """;opacity:0.6;">
-                \U0001f3af 点击按钮，小闯闯为你朗读知识点
-            </div>
-        </div>
-        
-        <div class="section-title">\U0001f4d6 知识点讲解</div>
-        """ + sections_html + """
-        
-        """ + tips_html + """
-        
-        <div class="section-title" style="margin-top:24px;">\U0001f914 趣味小练习</div>
-        """ + questions_html + """
-        
-        <div style="text-align:center;padding:20px;color:""" + text_color + """;opacity:0.5;font-size:13px;">
-            \U0001f308 小闯闯语音课堂 · 快乐学习每一天
-        </div>
-    </div>
+    return {
+        "file_path": output_path,
+        "file_name": filename,
+        "file_size": file_size,
+        "duration_seconds": round(file_size / 16000, 1),  # 估算时长
+        "text": text,
+        "style": style,
+        "voice": style_config["voice"],
+        "voice_desc": style_config["desc"]
+    }
+def run(subject, grade, topic, style="卡通冒险", difficulty="中等", output_dir=None):
+    """桂教通平台调用入口
     
-    <script>
-        var isPlaying = false;
-        var utterance = null;
-        
-        function playVoice() {
-            if (isPlaying) {
-                window.speechSynthesis.cancel();
-                stopPlaying();
-                return;
-            }
-            
-            var text = \"""" + voice_text + """\";
-            
-            if (!window.speechSynthesis) {
-                alert("您的浏览器不支持语音播放，请使用Chrome浏览器！");
-                return;
-            }
-            
-            utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = "zh-CN";
-            utterance.rate = 0.9;
-            utterance.pitch = 1.1;
-            utterance.volume = 1;
-            
-            var voices = window.speechSynthesis.getVoices();
-            var zhVoice = voices.find(function(v) { return v.lang.startsWith("zh"); });
-            if (zhVoice) utterance.voice = zhVoice;
-            
-            utterance.onstart = function() { startPlaying(); };
-            utterance.onend = function() { stopPlaying(); };
-            utterance.onerror = function() { stopPlaying(); };
-            
-            window.speechSynthesis.speak(utterance);
-        }
-        
-        function startPlaying() {
-            isPlaying = true;
-            document.getElementById("voiceBtn").classList.add("playing");
-            document.getElementById("voiceIcon").textContent = "\u23f9\ufe0f";
-            document.getElementById("voiceText").textContent = "点击停止播放";
-        }
-        
-        function stopPlaying() {
-            isPlaying = false;
-            document.getElementById("voiceBtn").classList.remove("playing");
-            document.getElementById("voiceIcon").textContent = "\U0001f50a";
-            document.getElementById("voiceText").textContent = "点击听小闯闯讲解";
-        }
-        
-        function checkAnswer(el) {
-            var answer = el.getAttribute("data-answer");
-            var value = el.getAttribute("data-value");
-            var feedback = el.closest(".question-card").querySelector(".feedback");
-            var options = el.closest(".options").querySelectorAll(".option");
-            
-            options.forEach(function(opt) { opt.style.pointerEvents = "none"; });
-            
-            if (value === answer) {
-                el.classList.add("correct");
-                feedback.className = "feedback correct";
-                feedback.innerHTML = "\u2705 回答正确！太棒了！\U0001f389";
-            } else {
-                el.classList.add("wrong");
-                feedback.className = "feedback wrong";
-                feedback.innerHTML = "\u274c 再想想哦～正确答案是：" + answer;
-                options.forEach(function(opt) {
-                    if (opt.getAttribute("data-value") === answer) {
-                        opt.classList.add("correct");
-                    }
-                });
-            }
-        }
-        
-        if (window.speechSynthesis) {
-            window.speechSynthesis.getVoices();
-            window.speechSynthesis.onvoiceschanged = function() {
-                window.speechSynthesis.getVoices();
-            };
-        }
-    </script>
-</body>
-</html>"""
+    Args:
+        subject: 学科（语文、数学、英语、科学、美术、音乐）
+        grade: 年级（一年级~六年级）
+        topic: 知识点主题
+        style: 语音风格（默认卡通冒险）
+        difficulty: 难度级别（简单、中等、较难）
+        output_dir: 输出目录（可选）
     
-    return html
-def run(subject, grade, topic, style="卡通冒险", difficulty="中等", content_data=None):
-    """桂教通平台调用入口"""
-    return generate_voice_html(subject, grade, topic, style, difficulty, content_data)
+    Returns:
+        dict: 包含音频文件路径、大小、时长等信息
+    """
+    return generate_audio(subject, grade, topic, style, difficulty, output_dir)
 
 ```
