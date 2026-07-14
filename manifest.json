@@ -1,1 +1,1 @@
-{"name": "小闯闯语音课堂生成器", "display_name": "小闯闯语音课堂生成器", "version": "2.0.0", "description": "根据用户需求，直接生成小学各学科知识点的语音讲解音频文件（MP3），无需网页，无需浏览器，一键生成可播放的语音文件。", "homepage": "https://github.com/godmixx/cartoon-learning-skill", "keywords": ["skills", "教育", "学习", "语音", "TTS"], "update_at": 1784013759333}
+{"name": "小闯闯知识点解读生成器", "display_name": "小闯闯知识点解读生成器", "version": "3.0.0", "description": "根据用户需求，生成小学各学科知识点的解读文字，支持6种风格、3个难度级别，内置丰富的知识点库。", "homepage": "https://github.com/godmixx/cartoon-learning-skill", "keywords": ["skills", "教育", "学习", "知识点解读"], "update_at": 1784015823935}
