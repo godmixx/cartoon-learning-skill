@@ -40,9 +40,81 @@ def generate_learning_html(subject, grade, topic, style="卡通冒险", difficul
         str: 生成的HTML文件路径
     """
     # 加载风格配置
-    style_config_path = os.path.join(os.path.dirname(__file__), "templates", "style_config.json")
-    with open(style_config_path, "r", encoding="utf-8") as f:
-        styles = json.load(f)
+    # 内联样式配置
+    styles = {
+  "卡通冒险": {
+    "primary": "#FF6B35",
+    "secondary": "#F7C59F",
+    "bg": "#FFF3E0",
+    "accent": "#FFD700",
+    "text": "#4A2800",
+    "card_bg": "#FFFFFF",
+    "shadow": "rgba(255,107,53,0.2)",
+    "gradient": "linear-gradient(135deg, #FF6B35 0%, #FFD700 100%)",
+    "font_family": "'Comic Neue', 'ZCOOL KuaiLe', cursive",
+    "description": "活力橙黄配色，适合冒险主题"
+  },
+  "梦幻童话": {
+    "primary": "#9B59B6",
+    "secondary": "#E8DAEF",
+    "bg": "#F5E6FF",
+    "accent": "#FF69B4",
+    "text": "#4A235A",
+    "card_bg": "#FFFFFF",
+    "shadow": "rgba(155,89,182,0.2)",
+    "gradient": "linear-gradient(135deg, #9B59B6 0%, #FF69B4 100%)",
+    "font_family": "'Ma Shan Zheng', 'ZCOOL KuaiLe', cursive",
+    "description": "梦幻紫粉配色，适合童话主题"
+  },
+  "太空探索": {
+    "primary": "#2E86C1",
+    "secondary": "#AED6F1",
+    "bg": "#E8F4FD",
+    "accent": "#00FF88",
+    "text": "#1B2631",
+    "card_bg": "#FFFFFF",
+    "shadow": "rgba(46,134,193,0.2)",
+    "gradient": "linear-gradient(135deg, #2E86C1 0%, #00FF88 100%)",
+    "font_family": "'Orbitron', 'ZCOOL KuaiLe', sans-serif",
+    "description": "科技蓝绿配色，适合太空主题"
+  },
+  "动物乐园": {
+    "primary": "#27AE60",
+    "secondary": "#A9DFBF",
+    "bg": "#E8F8F0",
+    "accent": "#F39C12",
+    "text": "#1E3A2E",
+    "card_bg": "#FFFFFF",
+    "shadow": "rgba(39,174,96,0.2)",
+    "gradient": "linear-gradient(135deg, #27AE60 0%, #F39C12 100%)",
+    "font_family": "'Fredoka One', 'ZCOOL KuaiLe', cursive",
+    "description": "自然绿橙配色，适合动物主题"
+  },
+  "海洋世界": {
+    "primary": "#1ABC9C",
+    "secondary": "#D5F5E3",
+    "bg": "#E8F6F3",
+    "accent": "#3498DB",
+    "text": "#0E4D3A",
+    "card_bg": "#FFFFFF",
+    "shadow": "rgba(26,188,156,0.2)",
+    "gradient": "linear-gradient(135deg, #1ABC9C 0%, #3498DB 100%)",
+    "font_family": "'Pacifico', 'ZCOOL KuaiLe', cursive",
+    "description": "清新蓝绿配色，适合海洋主题"
+  },
+  "森林奇遇": {
+    "primary": "#8BC34A",
+    "secondary": "#C8E6C9",
+    "bg": "#F1F8E9",
+    "accent": "#FF9800",
+    "text": "#33691E",
+    "card_bg": "#FFFFFF",
+    "shadow": "rgba(139,195,74,0.2)",
+    "gradient": "linear-gradient(135deg, #8BC34A 0%, #FF9800 100%)",
+    "font_family": "'Patrick Hand', 'ZCOOL KuaiLe', cursive",
+    "description": "森林绿橙配色，适合自然主题"
+  }
+}
     
     style_info = styles.get(style, styles["卡通冒险"])
     
@@ -53,7 +125,7 @@ def generate_learning_html(subject, grade, topic, style="卡通冒险", difficul
     html = build_html(subject, grade, topic, style_info, content, difficulty)
     
     # 保存文件
-    
+
     os.makedirs(output_dir, exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
