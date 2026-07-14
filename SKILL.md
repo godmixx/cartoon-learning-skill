@@ -24,7 +24,7 @@
 ```python
 import os
 import json
-from datetime import datetime
+import webbrowser
 def generate_learning_html(subject, grade, topic, style="卡通冒险", difficulty="中等"):
     """
     生成卡通风格的小学学科知识点学习网页
@@ -53,14 +53,17 @@ def generate_learning_html(subject, grade, topic, style="卡通冒险", difficul
     html = build_html(subject, grade, topic, style_info, content, difficulty)
     
     # 保存文件
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
+    
     os.makedirs(output_dir, exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{subject}_{grade}_{topic}_{timestamp}.html"
     filepath = os.path.join(output_dir, filename)
     
-    return html
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(html)
+    
+    return filepath
 def generate_content(subject, grade, topic, difficulty):
     """根据学科、年级、知识点生成学习内容"""
     # 知识点内容模板库
@@ -691,7 +694,7 @@ def build_html(subject, grade, topic, style_info, content, difficulty):
         }}
         
         @keyframes scoreIn {{
-            from {{
+            # from {{
                 transform: scale(0.5);
                 opacity: 0;
             }}
@@ -860,9 +863,4 @@ def build_html(subject, grade, topic, style_info, content, difficulty):
 </html>"""
     
     return html
-# 平台入口函数
-def run(subject, grade, topic, style="卡通冒险", difficulty="中等"):
-    """桂教通平台调用入口"""
-    return generate_learning_html(subject, grade, topic, style, difficulty)
-
 ```
