@@ -24,7 +24,6 @@
 ```python
 import os
 import json
-import webbrowser
 def generate_learning_html(subject, grade, topic, style="卡通冒险", difficulty="中等"):
     """
     生成卡通风格的小学学科知识点学习网页
@@ -935,4 +934,9 @@ def build_html(subject, grade, topic, style_info, content, difficulty):
 </html>"""
     
     return html
+# 平台入口函数
+def run(subject, grade, topic, style="卡通冒险", difficulty="中等"):
+    """桂教通平台调用入口"""
+    return generate_learning_html(subject, grade, topic, style, difficulty)
+
 ```
