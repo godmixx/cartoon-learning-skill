@@ -125,16 +125,7 @@ def generate_learning_html(subject, grade, topic, style="卡通冒险", difficul
     
     # 保存文件
 
-    os.makedirs(output_dir, exist_ok=True)
-    
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{subject}_{grade}_{topic}_{timestamp}.html"
-    filepath = os.path.join(output_dir, filename)
-    
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(html)
-    
-    return filepath
+    return html
 def generate_content(subject, grade, topic, difficulty):
     """根据学科、年级、知识点生成学习内容"""
     # 知识点内容模板库
