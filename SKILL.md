@@ -24,7 +24,7 @@
 ```python
 import os
 import json
-def generate_learning_html(subject, grade, topic, style="卡通冒险", difficulty="中等"):
+def generate_learning_html(subject, grade, topic, style="卡通冒险", difficulty="中等", content_data=None):
     """
     生成卡通风格的小学学科知识点学习网页
     
@@ -117,8 +117,11 @@ def generate_learning_html(subject, grade, topic, style="卡通冒险", difficul
     
     style_info = styles.get(style, styles["卡通冒险"])
     
-    # 生成知识点内容
-    content = generate_content(subject, grade, topic, difficulty)
+    # 生成知识点内容（优先使用传入的content_data，否则使用内置模板）
+    if content_data:
+        content = content_data
+    else:
+        content = generate_content(subject, grade, topic, difficulty)
     
     # 生成HTML
     html = build_html(subject, grade, topic, style_info, content, difficulty)
@@ -926,8 +929,17 @@ def build_html(subject, grade, topic, style_info, content, difficulty):
     
     return html
 # 平台入口函数
-def run(subject, grade, topic, style="卡通冒险", difficulty="中等"):
-    """桂教通平台调用入口"""
-    return generate_learning_html(subject, grade, topic, style, difficulty)
+def run(subject, grade, topic, style="卡通冒险", difficulty="中等", content_data=None):
+    """桂教通平台调用入口
+    
+    Args:
+        subject: 学科
+        grade: 年级
+        topic: 知识点主题
+        style: 页面风格（默认卡通冒险）
+        difficulty: 难度级别（默认中等）
+        content_data: 自定义知识点内容（dict），包含 title, intro, knowledge_points, tips, practice
+    """
+    return generate_learning_html(subject, grade, topic, style, difficulty, content_data)
 
 ```
